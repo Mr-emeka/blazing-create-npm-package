@@ -1,9 +1,9 @@
 {
-  "name": "create-npm-package",
+  "name": "blazing-create-npm-package",
   "license": "MIT",
   "version": "0.0.1",
   "bin": {
-    "create-npm-package": "./dist/index.js"
+    "blazing-create-npm-package": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup index.ts --format cjs,esm --dts",
