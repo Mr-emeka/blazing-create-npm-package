@@ -61,7 +61,6 @@ jobs:
         with:
           tag: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          body: |
-            $(cat CHANGELOG.md)
+          file: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
