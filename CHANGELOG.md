@@ -1,5 +1,11 @@
 # blazing-create-npm-package
 
+## 1.0.2
+
+### Patch Changes
+
+- 414c890: update readme and publish yml
+
 ## 1.0.1
 
 ### Patch Changes
