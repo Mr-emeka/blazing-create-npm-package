@@ -15,7 +15,7 @@ You don’t need to install globally. Just run:
 
 ```bash
 npx blazing-create-npm-package my-new-package
-
+```
 
 ## Contributing
 
