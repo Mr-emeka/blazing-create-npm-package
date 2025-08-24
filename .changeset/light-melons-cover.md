@@ -2,4 +2,4 @@
 "blazing-create-npm-package": major
 ---
 
-update package name
+setup blazing-create-npm-package
