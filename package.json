@@ -3,7 +3,7 @@
   "license": "MIT",
   "version": "1.0.0",
   "bin": {
-    "blazing-create-npm-package": "./dist/index.js"
+    "blazing-create-npm-package": "./dist/index.mjs"
   },
   "scripts": {
     "build": "tsup index.ts --format cjs,esm --dts",
@@ -20,5 +20,14 @@
     "chalk": "^5.6.0",
     "commander": "^14.0.0",
     "ora": "^8.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mr-emeka/blazing-create-npm-package"
+  },
+  "keywords": [
+    "npm",
+    "package",
+    "create"
+  ]
 }
