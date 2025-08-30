@@ -27,12 +27,18 @@ All contributions should be made against the development branch (❌ not main).
 
 Depending on your package manager, here’s how to build, link, test, and remove the package locally:
 
-| Package Manager | Build Command       | Link Globally       | Remove Link                              | Check Global Installs              |
-|-----------------|---------------------|---------------------|------------------------------------------|-------------------------------------|
-| **pnpm**        | `pnpm run build`    | `pnpm link --global`| `pnpm remove --global blazing-create-npm-package` | `pnpm list --global --depth 0`     |
-| **npm**         | `npm run build`     | `npm link`          | `npm unlink -g blazing-create-npm-package` | `npm list -g --depth=0`             |
-| **yarn**        | `yarn build`        | `yarn link`         | `yarn unlink blazing-create-npm-package`  | `yarn global list`                  |
-| **bun**         | `bun run build`     | `bun link`          | `bun unlink blazing-create-npm-package`   | `bun pm ls -g`                      |
+| Package Manager | Build Command    | Link Globally        | Remove Link                                       | Check Global Installs          |
+| --------------- | ---------------- | -------------------- | ------------------------------------------------- | ------------------------------ |
+| **pnpm**        | `pnpm run build` | `pnpm link --global` | `pnpm remove --global blazing-create-npm-package` | `pnpm list --global --depth 0` |
+| **npm**         | `npm run build`  | `npm link`           | `npm unlink -g blazing-create-npm-package`        | `npm list -g --depth=0`        |
+| **yarn**        | `yarn build`     | `yarn link`          | `yarn unlink blazing-create-npm-package`          | `yarn global list`             |
+| **bun**         | `bun run build`  | `bun link`           | `bun unlink blazing-create-npm-package`           | `bun pm ls -g`                 |
+
+After linking globally, run the CLI with:
+
+```bash
+blazing-create-npm-package <project-name>
+```
 
 ## 🐛 Issues
 
