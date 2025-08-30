@@ -1,5 +1,11 @@
 # blazing-create-npm-package
 
+## 1.0.5
+
+### Patch Changes
+
+- 7848b3a: update testing locally section
+
 ## 1.0.4
 
 ### Patch Changes
