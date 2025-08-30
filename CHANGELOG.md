@@ -1,5 +1,11 @@
 # blazing-create-npm-package
 
+## 1.0.4
+
+### Patch Changes
+
+- 4391fb5: Update readme and adds contributon guide
+
 ## 1.0.3
 
 ### Patch Changes
