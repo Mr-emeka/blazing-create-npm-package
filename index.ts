@@ -1,153 +1,77 @@
 #!/usr/bin/env node
-import { spawn } from "child_process";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import chalk from "chalk";
-import ora from "ora";
 
-// For __dirname in ES module scope
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import path from 'path';
+import fs from 'fs-extra';
+import { execSync } from 'child_process';
+import { Command } from 'commander';
 
-type CLIOptions = {
-  cli: boolean;
-  lib: boolean;
-};
+// 1. Define the command-line interface with commander
+const program = new Command();
 
-type ParsedArgs = {
-  projectName: string | null;
-  opts: CLIOptions;
-};
+program
+  .version('1.0.0')
+  .description('A blazing fast CLI tool to create a new npm package')
+  .argument('<packageName>', 'The name of the package to create')
+  .option('--cli', 'Scaffold a command-line (CLI) tool package')
+  .action((packageName, options) => {
+    console.log(`🚀 Creating package: ${packageName}`);
+    scaffoldProject(packageName, options);
+  });
 
-const templateDir = path.join(__dirname, "../template");
+program.parse(process.argv);
 
-function printHelp(): void {
-  console.log(`
-${chalk.bold("Usage:")}
-  npx create-npm-package <package-name> [options]
+// 2. Main scaffolding logic
+function scaffoldProject(projectName: string, options: { cli?: boolean }) {
+  const projectDir = path.join(process.cwd(), projectName);
+  const templateDir = path.join(__dirname, '../template');
 
-${chalk.bold("Options:")}
-  --cli          Scaffold a CLI package (adds bin field, index.js entrypoint)
-  --lib          Scaffold a library package (default)
-  -h, --help     Show this help message
-
-${chalk.bold("Examples:")}
-  npx create-npm-package <package-name>
-  npx create-npm-package <package-name> --cli
-  `);
-}
-
-function exitWithError(message: string): never {
-  console.error(chalk.red(`❌ ${message}`));
-  process.exit(1);
-}
-
-function parseArgs(argv: string[]): ParsedArgs {
-  const args = argv.slice(2);
-  const opts: CLIOptions = { cli: false, lib: true };
-
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
-    printHelp();
-    process.exit(0);
-  }
-
-  const projectName = args[0] ?? null;
-
-  if (args.includes("--cli")) {
-    opts.cli = true;
-    opts.lib = false;
-  }
-
-  return { projectName, opts };
-}
-
-function scaffoldProject(
-  projectPath: string,
-  projectName: string,
-  opts: CLIOptions
-): void {
-  const spinner = ora("📂 Scaffolding project...").start();
-
-  try {
-    fs.cpSync(templateDir, projectPath, { recursive: true });
-
-    // Update package.json
-    const pkgPath = path.join(projectPath, "package.json");
-    if (fs.existsSync(pkgPath)) {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
-        name: string;
-        bin?: Record<string, string>;
-      };
-
-      pkg.name = projectName;
-
-      if (opts.cli) {
-        pkg.bin = { [projectName]: "./bin/index.js" };
-      }
-
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-    }
-
-    spinner.succeed(`📂 Project files created successfully`);
-  } catch (err) {
-    spinner.fail("❌ Failed to scaffold project");
-    console.error(err);
+  if (fs.existsSync(projectDir)) {
+    console.error(`❌ Error: Directory "${projectName}" already exists.`);
     process.exit(1);
   }
-}
 
-function installDependencies(projectPath: string, projectName: string): void {
-  const spinner = ora("📦 Installing dependencies...").start();
+  // Copy template files
+  fs.copySync(templateDir, projectDir);
 
-  const child = spawn("npm", ["install"], {
-    cwd: projectPath,
-    stdio: "pipe",
-  });
+  // Modify the package.json with the project name
+  const packageJsonPath = path.join(projectDir, 'package.json');
+  const packageJson = fs.readJsonSync(packageJsonPath);
+  packageJson.name = projectName;
 
-  child.stdout.on("data", (data: Buffer) => {
-    spinner.text = `📦 Installing... ${data.toString().trim()}`;
-  });
-
-  child.stderr.on("data", (data: Buffer) => {
-    spinner.warn(`⚠️ ${data.toString().trim()}`);
-  });
-
-  child.on("close", (code: number) => {
-    if (code !== 0) {
-      spinner.fail("❌ npm install failed");
-      process.exit(1);
+  // --- This is the ONLY new logic ---
+  // If --cli flag is used, add the 'bin' field and a shebang
+  if (options.cli) {
+    // Add the bin field to package.json
+    packageJson.bin = {
+      [projectName]: 'dist/index.js',
+    };
+    
+    // Add the shebang to the main src/index.ts file
+    const mainFilePath = path.join(projectDir, 'src/index.ts'); // Assumes a src directory in your template
+    let mainFileContent = fs.readFileSync(mainFilePath, 'utf-8');
+    if (!mainFileContent.startsWith('#!/usr/bin/env node')) {
+        mainFileContent = `#!/usr/bin/env node\n\n${mainFileContent}`;
+        fs.writeFileSync(mainFilePath, mainFileContent);
     }
+  }
+  // --- End of new logic ---
 
-    spinner.succeed("✅ Dependencies installed!");
-    showNextSteps(projectName);
-  });
+  fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
+
+  installDependencies(projectDir);
 }
 
-function showNextSteps(projectName: string): void {
-  console.log(`
-🎉 Project ${chalk.green(projectName)} created successfully!
+// 3. Dependency installation logic
+function installDependencies(projectDir: string) {
+  console.log('📦 Initializing git and installing dependencies with pnpm...');
+  try {
+    execSync('git init', { cwd: projectDir });
+    execSync('pnpm install', { cwd: projectDir, stdio: 'inherit' });
 
-Next steps:
-  cd ${projectName}
-  git init
-  npm run build
-  npm run release
-  `);
+    console.log(`\n✅ Success! Your new package "${path.basename(projectDir)}" is ready.`);
+    console.log(`\nNavigate to your project:\n  cd ${path.basename(projectDir)}`);
+    console.log('\nStart coding! 🔥');
+  } catch (error) {
+    console.error('❌ Error initializing git or installing dependencies.', error);
+  }
 }
-
-// ----------------- Main -----------------
-const { projectName, opts } = parseArgs(process.argv);
-
-if (!projectName) {
-  exitWithError("Please provide a project name.\nRun with --help for usage.");
-}
-
-const projectPath = path.join(process.cwd(), projectName);
-
-if (fs.existsSync(projectPath)) {
-  exitWithError("Folder already exists!");
-}
-
-scaffoldProject(projectPath, projectName, opts);
-installDependencies(projectPath, projectName);
